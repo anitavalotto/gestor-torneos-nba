@@ -2,9 +2,8 @@ package org.tpnba.modelo;
 
 import org.tpnba.interfaces.Identificable;
 import org.tpnba.excepciones.DorsalDuplicadoException;
-import org.tpnba.excepciones.EntidadNoEncontrada;
+import org.tpnba.excepciones.EntidadNoEncontradaException;
 import org.tpnba.excepciones.PlantelCompletoException;
-import org.tpnba.interfaces.Identificable;
 import org.tpnba.interfaces.Reportable;
 import org.tpnba.enums.Conferencia;
 
@@ -59,12 +58,12 @@ public class Equipo implements Identificable, Reportable {
 
     /**
      * Quita del plantel al jugador con el dorsal indicado.
-     * @throws EntidadNoEncontrada si ningun jugador usa ese dorsal
+     * @throws EntidadNoEncontradaException si ningun jugador usa ese dorsal
      */
-    public Jugador quitarJugador(int dorsal) throws EntidadNoEncontrada{
+    public Jugador quitarJugador(int dorsal) throws EntidadNoEncontradaException {
         Jugador jugador = buscarJugador(dorsal);
         if (jugador == null) {
-            throw new EntidadNoEncontrada("No hay ningun jugador con el dorsal " + dorsal + " en " + nombre + ".");
+            throw new EntidadNoEncontradaException("No hay ningun jugador con el dorsal " + dorsal + " en " + nombre + ".");
         }
         plantel.remove(jugador);
         return jugador;
