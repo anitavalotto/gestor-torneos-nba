@@ -21,7 +21,7 @@ public class Partido implements Identificable {
     private int puntosVisitante;
     private EstadoPartido estado;
 
-    public Partido (int id, Equipo local, Equipo visitante, LocalDate fecha, Fase fase) throws IllegalArgumentException{
+    public Partido (int id, Equipo local, Equipo visitante, LocalDate fecha, Fase fase){
         if (local == null || visitante == null){
             throw new IllegalArgumentException("El partido necesita obligatoriamente 2 equipos");
         }
@@ -29,7 +29,7 @@ public class Partido implements Identificable {
             throw new IllegalArgumentException("Un equipo no puede jugar contra si mismo");
         }
         if (fase == null){
-            throw new IllegalArgumentException("La fase es obligatoria")
+            throw new IllegalArgumentException("La fase es obligatoria");
         }
         this.id = id;
         this.local = local;
@@ -58,13 +58,13 @@ public class Partido implements Identificable {
 
     //retorna equipo ganador
 
-    public Equipo getGanador () throws IllegalStateException{
+    public Equipo getGanador (){
         verificarFinalizado();
         return puntosLocal > puntosVisitante ? local : visitante;
     }
 
     //retorna equipo perdedor
-    public Equipo getPerdedor () throws IllegalStateException{
+    public Equipo getPerdedor (){
         verificarFinalizado();
         return puntosLocal > puntosVisitante ? visitante : local;
     }
@@ -135,29 +135,22 @@ public class Partido implements Identificable {
 
     @Override
     public boolean equals(Object o) {
+        if (this == o) return true;
         if (!(o instanceof Partido partido)) return false;
-        return id == partido.id && puntosLocal == partido.puntosLocal && puntosVisitante == partido.puntosVisitante && Objects.equals(local, partido.local) && Objects.equals(visitante, partido.visitante) && Objects.equals(fecha, partido.fecha) && fase == partido.fase && estado == partido.estado;
+        return id == partido.id;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, local, visitante, fecha, fase, puntosLocal, puntosVisitante, estado);
+        return Objects.hash(id);
     }
 
     @Override
     public String toString() {
-        return "Partido{" +
-                "id=" + id +
-                ", local=" + local +
-                ", visitante=" + visitante +
-                ", fecha=" + fecha +
-                ", fase=" + fase +
-                ", puntosLocal=" + puntosLocal +
-                ", puntosVisitante=" + puntosVisitante +
-                ", estado=" + estado +
-                '}';
+        String fechaTexto = (fecha != null) ? fecha + " | " : "";
+        if (estaFinalizado()) {
+            return fechaTexto + local.getNombre() + " " + puntosLocal + " - " + puntosVisitante + " " + visitante.getNombre();
+        }
+        return fechaTexto + local.getNombre() + " vs " + visitante.getNombre() + " (programado)";
     }
-
-
-
 }

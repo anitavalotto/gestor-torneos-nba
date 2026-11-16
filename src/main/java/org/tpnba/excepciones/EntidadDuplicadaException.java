@@ -5,6 +5,6 @@ package org.tpnba.excepciones;
 public class EntidadDuplicadaException extends TorneoException {
     public EntidadDuplicadaException(String tipo, int id) {
 
-      super("Ya existe un " + tipo + " con id: " +id+);
+      super("Ya existe un " + tipo + " con id: " +id);
     }
 }

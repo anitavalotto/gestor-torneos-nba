@@ -1,11 +1,12 @@
 package org.tpnba;
 
 import org.tpnba.enums.Conferencia;
+import org.tpnba.enums.Fase;
+import org.tpnba.excepciones.EntidadDuplicadaException;
+import org.tpnba.excepciones.EntidadNoEncontradaException;
 import org.tpnba.excepciones.TorneoException;
-import org.tpnba.modelo.Entrenador;
-import org.tpnba.modelo.Equipo;
-import org.tpnba.modelo.Jugador;
-import org.tpnba.modelo.Persona;
+import org.tpnba.genericos.Repositorio;
+import org.tpnba.modelo.*;
 import org.tpnba.enums.Posicion;
 
 import java.time.LocalDate;
@@ -17,40 +18,96 @@ public class Main {
     static void main(String[] args) {
 
         Equipo warriors = new Equipo(1, "Warriors", "Golden State", Conferencia.OESTE);
-        warriors.setEntrenador(new Entrenador(100, "Steve", "Kerr", LocalDate.of(1965, 9, 27), "USA", 11));
+        Equipo lakers = new Equipo(2, "Lakers", "Los Angeles", Conferencia.OESTE);
+        Equipo celtics = new Equipo(3, "Celtics", "Boston", Conferencia.ESTE);
 
+        // ===== PARTIDO =====
+        System.out.println("--- Partido ---");
+        Partido p1 = new Partido(1, warriors, lakers, LocalDate.of(2026, 10, 21), Fase.REGULAR);
+        System.out.println(p1);
         try {
-            warriors.agregarJugador(new Jugador(1, "Stephen", "Curry", LocalDate.of(1988, 3, 14), "USA", 30, Posicion.BASE, 1.88));
-            warriors.agregarJugador(new Jugador(2, "Draymond", "Green", LocalDate.of(1990, 3, 4), "USA", 23, Posicion.ALA_PIVOT, 1.98));
-            warriors.agregarJugador(new Jugador(3, "Jimmy", "Butler", LocalDate.of(1989, 9, 14), "USA", 10, Posicion.ALERO, 2.01));
+            p1.registrarResultado(118, 112);
+            System.out.println(p1);
+            System.out.println("Ganador: " + p1.getGanador());
         } catch (TorneoException e) {
             System.out.println("Error: " + e.getMessage());
         }
 
-        System.out.println(warriors.generarReporte());
-
-        // Prueba 1: dorsal repetido
         try {
-            warriors.agregarJugador(new Jugador(4, "Otro", "Jugador", LocalDate.of(2000, 1, 1), "ARG", 30, Posicion.ESCOLTA, 1.95));
+            p1.registrarResultado(100, 90);               // ya jugado
         } catch (TorneoException e) {
             System.out.println("Error esperado: " + e.getMessage());
         }
 
-        // Prueba 2: plantel completo (completamos hasta 15 y probamos uno mas)
+        Partido p2 = new Partido(2, lakers, warriors, LocalDate.of(2026, 10, 28), Fase.REGULAR);
         try {
-            for (int dorsal = 40; warriors.getCantidadJugadores() < Equipo.MAX_JUGADORES; dorsal++) {
-                warriors.agregarJugador(new Jugador(dorsal, "Relleno", "N" + dorsal, LocalDate.of(2000, 1, 1), "USA", dorsal, Posicion.ALERO, 2.00));
-            }
-            warriors.agregarJugador(new Jugador(99, "Uno", "Mas", LocalDate.of(2000, 1, 1), "USA", 99, Posicion.PIVOT, 2.10));
+            p2.registrarResultado(105, 105);              // empate
         } catch (TorneoException e) {
             System.out.println("Error esperado: " + e.getMessage());
         }
+        System.out.println(p2);                           // sigue programado
 
-        // Prueba 3: quitar un dorsal que no existe
         try {
-            warriors.quitarJugador(77);
-        } catch (TorneoException e) {
+            new Partido(3, warriors, warriors, LocalDate.now(), Fase.REGULAR);
+        } catch (IllegalArgumentException e) {
             System.out.println("Error esperado: " + e.getMessage());
+        }
+
+        try {
+            p2.getGanador();                              // todavia no se jugo
+        } catch (IllegalStateException e) {
+            System.out.println("Error esperado: " + e.getMessage());
+        }
+
+        // ===== REPOSITORIO DE EQUIPOS =====
+        System.out.println("\n--- Repositorio<Equipo> ---");
+        Repositorio<Equipo> equipos = new Repositorio<>("equipo");
+        try {
+            equipos.agregar(warriors);
+            equipos.agregar(lakers);
+            equipos.agregar(celtics);
+            System.out.println("Cantidad: " + equipos.cantidad());
+            System.out.println("Busqueda id 2: " + equipos.buscarPorId(2));
+            equipos.eliminar(2);
+            System.out.println("Tras eliminar id 2: " + equipos.listar());
+        } catch (TorneoException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        try {
+            equipos.buscarPorId(2);                       // ya eliminado
+        } catch (EntidadNoEncontradaException e) {
+            System.out.println("Error esperado: " + e.getMessage());
+        }
+        try {
+            equipos.eliminar(99);                         // nunca existio
+        } catch (EntidadNoEncontradaException e) {
+            System.out.println("Error esperado: " + e.getMessage());
+        }
+        try {
+            equipos.agregar(warriors);                    // id repetido
+        } catch (EntidadDuplicadaException e) {
+            System.out.println("Error esperado: " + e.getMessage());
+        }
+        try {
+            equipos.agregar(null);
+        } catch (IllegalArgumentException | EntidadDuplicadaException e) {
+            System.out.println("Error esperado: " + e.getMessage());
+        }
+
+        equipos.listar().clear();                         // vacia la COPIA, no el repositorio
+        System.out.println("Cantidad tras modificar la copia: " + equipos.cantidad());
+
+        // ===== REPOSITORIO DE PARTIDOS: el MISMO codigo, otro tipo =====
+        System.out.println("\n--- Repositorio<Partido> (mismo codigo, otro tipo) ---");
+        Repositorio<Partido> partidos = new Repositorio<>("partido");
+        try {
+            partidos.agregar(p1);
+            partidos.agregar(p2);
+            System.out.println("Cantidad: " + partidos.cantidad());
+            System.out.println("Partido id 1: " + partidos.buscarPorId(1));
+        } catch (TorneoException e) {
+            System.out.println("Error: " + e.getMessage());
         }
     }
 
